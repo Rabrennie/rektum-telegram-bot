@@ -2,7 +2,8 @@ var http = require('http'),
     fs = require('fs'),
     _ = require('lodash'),
     TelegramBot = require('node-telegram-bot-api'),
-    rp = require('request-promise')
+    rp = require('request-promise'),
+    Firebase = require('firebase');
 
 require('dotenv').load();
 
@@ -11,7 +12,9 @@ var voicerssToken = process.env.VOICERSS_TOKEN,
     locale = "en-gb",
     format = "48khz_16bit_stereo",
     rektList = '',
-    bot = new TelegramBot(telegramToken, {polling: true});
+    bot = new TelegramBot(telegramToken, {polling: true}),
+    fbref = new Firebase(process.env.FIREBASE_REF);
+    chatsref = new Firebase(process.env.FIREBASE_REF + "chats");
 
 console.log(voicerssToken, telegramToken);
 
@@ -25,22 +28,22 @@ rp('http://rawgit.com/seiyria/status-list/master/rekt-list.md')
     });
 
 var fixText = function(text){
-  var text = text;
+  var fixes = [ {bad:'[x]', good:''},
+                {bad:'rekt', good:'rect'},
+                {bad:'rekkit', good:'wreck it'},
+                {bad:'-', good:' '},
+              ]
+  var text = text.toLowerCase();
 
-  text = text.split('[x]').join('');
-
-  //tts works better with rect :(
-  text = text.split('REKT').join('rect');
-
-  //temporary fixes
-  text = text.split('rekkit').join('wreck it');
-  text = text.split('-').join(' ');
+  for (var change in fixes) {
+    if (fixes.hasOwnProperty(change)) {
+      text = text.split(fixes[change].bad).join(fixes[change].good);
+    }
+  }
 
   if (text.charCodeAt(8) == 178){
     text = text.split('²').join('') + ' squared ';
   }
-
-  text = text.toLowerCase();
 
   return text;
 }
@@ -65,6 +68,21 @@ bot.onText(/\/rekt/, function (msg, match) {
   var currentText = _.sample(rektList);
   var text = fixText( currentText );
   var filename = 'cache/' + text.split(' ').join('')+ '.mp3';
+
+  fbref.child('callcount').transaction(function(currentCount) {
+    return currentCount+1;
+  });
+
+  chatsref.child(fromId).once('value', function(snapshot){
+    var exists = (snapshot.val() !== null);
+    if (!exists) {
+      var tempRef = chatsref.child(fromId);
+      tempRef.push({ checked:true });
+      fbref.child('usercount').transaction(function(currentCount) {
+        return currentCount+1;
+      });
+    }
+  });
 
   //check if mp3 file already exists in cache. Saves using the api
   fs.stat(filename, function(err, stat) {
