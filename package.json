@@ -3,6 +3,7 @@
   "description": "A telegram bot",
   "author": "Rab Rennie <rennierab@gmail.com>",
   "dependencies": {
+    "dotenv": "^1.2.0",
     "lodash": "3.10.x",
     "node-telegram-bot-api": "0.17.x",
     "request-promise": "1.0.x"

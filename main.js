@@ -4,13 +4,16 @@ var http = require('http'),
     TelegramBot = require('node-telegram-bot-api'),
     rp = require('request-promise')
 
-//voicerss stuff
-var voicerssToken = "<VOICERSS TOKEN HERE>",
+require('dotenv').load();
+
+var voicerssToken = process.env.VOICERSS_TOKEN,
+    telegramToken = process.env.TELEGRAM_TOKEN,
     locale = "en-gb",
     format = "48khz_16bit_stereo",
     rektList = '',
-    telegramToken = '<TELEGRAM BOT TOKEN HERE>',
     bot = new TelegramBot(telegramToken, {polling: true});
+
+console.log(voicerssToken, telegramToken);
 
 rp('http://rawgit.com/seiyria/status-list/master/rekt-list.md')
     .then(function (htmlString) {
