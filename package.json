@@ -1,0 +1,11 @@
+{
+  "name": "rektum-telegram-bot",
+  "description": "A telegram bot",
+  "author": "Rab Rennie <rennierab@gmail.com>",
+  "dependencies": {
+    "lodash": "3.10.x",
+    "node-telegram-bot-api": "0.17.x",
+    "request-promise": "1.0.x"
+  },
+  "engine": "node >= 0.4.1"
+}
