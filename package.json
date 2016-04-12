@@ -6,7 +6,8 @@
     "dotenv": "^1.2.0",
     "firebase": "^2.3.2",
     "lodash": "3.10.x",
-    "node-telegram-bot-api": "0.17.x",
+    "node-static": "^0.7.7",
+    "node-telegram-bot-api": "0.21.x",
     "request-promise": "1.0.x"
   },
   "engine": "node >= 0.4.1"

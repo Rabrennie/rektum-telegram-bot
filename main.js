@@ -3,9 +3,20 @@ var http = require('http'),
     _ = require('lodash'),
     TelegramBot = require('node-telegram-bot-api'),
     rp = require('request-promise'),
-    Firebase = require('firebase');
+    Firebase = require('firebase'),
+    static = require('node-static');
 
 require('dotenv').load();
+
+var fileServer = new static.Server('./cache');
+
+require('http').createServer(function (request, response) {
+    request.addListener('end', function () {
+        fileServer.serve(request, response);
+    }).resume();
+}).listen(8080);
+
+
 
 var voicerssToken = process.env.VOICERSS_TOKEN,
     telegramToken = process.env.TELEGRAM_TOKEN,
@@ -85,19 +96,58 @@ bot.onText(/\/rekt/, function (msg, match) {
   });
 
   //check if mp3 file already exists in cache. Saves using the api
+
+  getFile(text,filename, function (){
+    bot.sendMessage(fromId, currentText);
+    bot.sendAudio(fromId, filename, {title:currentText});
+  });
+
+});
+
+function getFile(text, filename, cb) {
   fs.stat(filename, function(err, stat) {
     if(err == null) {
-      bot.sendMessage(fromId, currentText);
-      bot.sendAudio(fromId, filename, {title:currentText});
+      cb();
     } else if(err.code == 'ENOENT') {
       download("http://api.voicerss.org/?key=" + voicerssToken +"&src=" + text +"&hl=" + locale +"&f=" + format, filename, function(){
-        bot.sendMessage(fromId, currentText);
-        bot.sendAudio(fromId, filename, {title:currentText});
+        cb();
       })
     } else {
         console.log('Some other error: ', err.code);
     }
 });
+}
 
+bot.on('inline_query', function(msg)
+{
+    var q_id = msg.id;
+    var q_query = msg.query;
+//  var q_from = msg.from;
+//  var q_offset = msg.offset;
 
+    var results = [];
+
+    for (var i = 0; i < 10; ++i) {
+        var currentText = _.sample(rektList);
+        var text = fixText( currentText );
+        var filename = 'cache/' + text.split(' ').join('')+ '.mp3';
+
+        getFile(text,filename, function (){
+
+          var InlineQueryResultAudio = {
+              'type': 'audio',
+              'audio_url': 'http://45.55.75.238:8080/' + filename,
+              'id': '287878416582808857/' + i,
+          };
+          results.push(InlineQueryResultAudio);
+        });
+
+    }
+
+    bot.answerInlineQuery(q_id, results);
+});
+
+bot.on('chosen_inline_result', function(msg)
+{
+    // console.log('Chosen:' + msg);
 });
