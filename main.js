@@ -124,10 +124,8 @@ bot.on('inline_query', function(msg)
     var q_query = msg.query;
 //  var q_from = msg.from;
 //  var q_offset = msg.offset;
-
     var results = [];
 
-    for (var i = 0; i < 10; ++i) {
         var currentText = _.sample(rektList);
         var text = fixText( currentText );
         var filename = 'cache/' + text.split(' ').join('')+ '.mp3';
@@ -136,18 +134,20 @@ bot.on('inline_query', function(msg)
 
           var InlineQueryResultAudio = {
               'type': 'audio',
-              'audio_url': 'http://45.55.75.238:8080/' + filename,
-              'id': '287878416582808857/' + i,
+              'audio_url': 'http://45.55.75.238:8080/' + text.split(' ').join('') + '.mp3',
+              'id': '287878416582808857/',
+              'title': currentText
           };
           results.push(InlineQueryResultAudio);
+          bot.answerInlineQuery(q_id, results);
         });
 
-    }
 
-    bot.answerInlineQuery(q_id, results);
+
+
 });
 
 bot.on('chosen_inline_result', function(msg)
 {
-    // console.log('Chosen:' + msg);
+    //console.log('Chosen:' + msg);
 });
